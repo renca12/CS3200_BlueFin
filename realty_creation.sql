@@ -94,14 +94,16 @@ FOREIGN KEY (seller_realtor_relation_id) REFERENCES seller_realtor_relation(sell
 -- insert data
 INSERT INTO management_company(management_company_id, management_company_name) VALUES
 (1, 'Photon Mgmt'),
-(2, 'Real Bros Real Estate');
+(2, 'Real Bros Real Estate'),
+(3, 'Garbs Inc');
 
 INSERT INTO realtor(realtor_id, realtor_firstname, realtor_lastname, realtor_age, management_company_id) VALUES
 (1, 'Jimbo', 'Jorges', '67', 1),
 (2, 'Big', 'Nate', '13', 1),
 (3, 'George', 'Jumbotron', '44', 2),
 (4, 'Geoff', 'Jumbotron', '47', 2),
-(5, 'Timmy', 'Jumbotron', '38', 2);
+(5, 'Timmy', 'Jumbotron', '38', 2),
+(6, 'Garbanzo', 'Beans', '37', 3);
 
 -- SELECT r.realtor_firstname 
 -- FROM realtor r
@@ -123,7 +125,11 @@ INSERT INTO seller(seller_id, seller_firstname, seller_lastname) VALUES
 (11, 'Steve', 'From-Minecraft'),
 (12, 'Austin', 'Wedge'),
 (13, 'Kyle', 'Shanahan'),
-(14, 'Jake', 'Lyon');
+(14, 'Jake', 'Lyon'),
+(15, 'Scooby', 'Doo'),
+(16, 'Priss', 'Chratt'),
+(17, 'Harry', 'Potter'),
+(18, 'Sneverus', 'Ape');
 
 INSERT INTO buyer(buyer_id, has_partner, num_kids, buyer_firstname, buyer_lastname) VALUES
 (1, 0, 0, 'Fransisco', 'Lindor'),
@@ -145,7 +151,7 @@ INSERT INTO buyer(buyer_id, has_partner, num_kids, buyer_firstname, buyer_lastna
 (17, 1, 0, 'Puka', 'Nacua'),
 (18, 1, 1, 'Shohei', 'Ohtani'),
 (19, 1, 2, 'Terrance', 'Foster'),
-(20, 0, 0, 'El', 'Jefe'),
+(20, 0, 0, 'El', 'Jefes'),
 (21, 1, 2, 'Sir', 'Duke');
 
 INSERT INTO zip_code(zip_code_id, avg_property_tax, region, state) VALUES
@@ -170,7 +176,11 @@ INSERT INTO seller_realtor_relation(seller_realtor_relation_id, seller_id, realt
 (11, 11, 1),
 (12, 12, 1),
 (13, 13, 4),
-(14, 14, 2);
+(14, 14, 2),
+(15, 15, 2),
+(16, 16, 5),
+(17, 17, 1),
+(18, 18, 3);
 
 INSERT INTO buyer_realtor_relation(buyer_realtor_relation_id, buyer_id, realtor_id) VALUES
 ( 1 , 1, 1),
@@ -216,7 +226,9 @@ street_number, street_name, zip_code_id, seller_id) VALUES
 (15, 1400, 2, 2, 1, 'apartment', 1, 86, 1, 19, '523', 'Louisville St', '02744', 1),
 (16, 3500, 5, 4, 0, 'house', 0, 28, 0, 4, '3102', 'Lullaby Pl', '02019', 12),
 (17, 1950, 3, 2, 0, 'condo', 1, 72, 1, 11, '1045', 'Drexel St', '02019', 7),
-(18, 2600, 4, 3, 0, 'house', 0, 38, 1, 6, '2456', 'Banana St', '02739', 9);
+(18, 2600, 4, 3, 0, 'house', 0, 38, 1, 6, '2456', 'Banana St', '02739', 9),
+(19, 12500, 4, 4.5, 1, 'house', 1, 65, 1, 12, '86', 'Parcel Pt', '02019', 15),
+(20, 1500, 3, 1, 1, 'apartment', 1, 89, 1, 50, '920', 'Piltover Rd', '02115', 18);
 
 INSERT INTO transaction(transaction_id, seller_asking_price, buyer_asking_price, got_property, sell_price,
 offer_date, sell_date, property_id, buyer_realtor_relation_id, seller_realtor_relation_id) VALUES
@@ -230,8 +242,38 @@ offer_date, sell_date, property_id, buyer_realtor_relation_id, seller_realtor_re
 (8,612500,570000,1,575000,'2025-02-01','2025-02-17',14, 18, 14),
 (9,3500,3200,1,3475,'2024-07-29','2024-08-29',15, 9, 1),
 (10,765000,740000,1,750000,'2025-09-20','2025-09-23',10, 19, 10),
-(11,2575,2420,1,2500,'2025-10-22','2025-10-23',12, 20, 12);
+(11,2575,2420,1,2500,'2025-10-22','2025-10-23',12, 20, 12),
+(12,10000000,6500000,1,7650000,'2025-01-24','2025-02-25',19, 21, 15),
+(13, 3000, 2925, 1, 3000, '2024-08-12', '2024-08-30',20, 14, 18);
 
--- SELECT buyer_asking_price FROM transaction t
+-- Queries
+-- 1. Number of sales made by each realtor
+SELECT * FROM transaction;
+SELECT * FROM seller_realtor_relation;
+SELECT * FROM realtor;
+
+SELECT r.realtor_firstname, r.realtor_lastname, IFNULL(sum(t.got_property), '0') AS "num_sales"
+FROM realtor r
+LEFT JOIN seller_realtor_relation s ON r.realtor_id = s.realtor_id
+LEFT JOIN transaction t ON s.seller_realtor_relation_id = t.seller_realtor_relation_id
+GROUP BY r.realtor_firstname, r.realtor_lastname
+ORDER BY num_sales DESC;
+
+-- Which realtor negotiates for their buyers the best? 
+SELECT * FROM realtor;
+SELECT * FROM buyer;
+SELECT * FROM transaction;
+SELECT * FROM buyer_realtor_relation;
+SELECT * FROM management_company;
+SELECT ROUND(AVG((sell_price - buyer_asking_price) / (t.seller_asking_price - t.buyer_asking_price)),4) AS "pct_of_bid_ask_spread_realized",
+r.realtor_firstname, r.realtor_lastname, m.management_company_name
+FROM transaction t
+INNER JOIN buyer_realtor_relation b ON t.buyer_realtor_relation_id = b.buyer_realtor_relation_id
+INNER JOIN realtor r ON b.realtor_id = r.realtor_id
+INNER JOIN management_company m ON r.management_company_id = m.management_company_id
+GROUP BY r.realtor_firstname, r.realtor_lastname, m.management_company_name
+ORDER BY pct_of_bid_ask_spread_realized ASC;
+
+
 -- LEFT JOIN property p ON t.property_id = p.property_id
 -- WHERE zip_code_id = '02120';
