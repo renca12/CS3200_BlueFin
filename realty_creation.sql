@@ -1,4 +1,4 @@
--- create database, tables, and attributes
+-- ================================== Create Database, Tables, and Attributes ==================================
 
 DROP DATABASE IF EXISTS realty;
 CREATE DATABASE IF NOT EXISTS realty;
@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS management_company;
 CREATE TABLE management_company(
 management_company_id INT PRIMARY KEY AUTO_INCREMENT,
 management_company_name VARCHAR(45));
+
 
 DROP TABLE IF EXISTS realtor;
 CREATE TABLE realtor(
@@ -91,7 +92,7 @@ FOREIGN KEY (property_id) REFERENCES property(property_id),
 FOREIGN KEY (buyer_realtor_relation_id) REFERENCES buyer_realtor_relation(buyer_realtor_relation_id),
 FOREIGN KEY (seller_realtor_relation_id) REFERENCES seller_realtor_relation(seller_realtor_relation_id));
 
--- insert data
+-- =================================================== Data Insertion ===================================================
 INSERT INTO management_company(management_company_id, management_company_name) VALUES
 (1, 'Photon Mgmt'),
 (2, 'Real Bros Real Estate'),
@@ -246,7 +247,17 @@ offer_date, sell_date, property_id, buyer_realtor_relation_id, seller_realtor_re
 (12,10000000,6500000,1,7650000,'2025-01-24','2025-02-25',19, 21, 15),
 (13, 3000, 2925, 1, 3000, '2024-08-12', '2024-08-30',20, 14, 18);
 
--- Queries
+-- =================================================== Queries ===================================================
+SELECT * FROM management_company;
+SELECT * FROM realtor;
+SELECT * FROM seller;
+SELECT * FROM buyer;
+SELECT * FROM zip_code;
+SELECT * FROM seller_realtor_relation;
+SELECT * FROM buyer_realtor_relation;
+SELECT * FROM property;
+SELECT * FROM transaction;
+
 -- 1. Number of sales made by each realtor
 SELECT * FROM transaction;
 SELECT * FROM seller_realtor_relation;
@@ -259,12 +270,13 @@ LEFT JOIN transaction t ON s.seller_realtor_relation_id = t.seller_realtor_relat
 GROUP BY r.realtor_firstname, r.realtor_lastname
 ORDER BY num_sales DESC;
 
--- Which realtor negotiates for their buyers the best? 
+-- 2. Which realtor negotiates for their buyers the best? 
 SELECT * FROM realtor;
 SELECT * FROM buyer;
 SELECT * FROM transaction;
 SELECT * FROM buyer_realtor_relation;
 SELECT * FROM management_company;
+
 SELECT ROUND(AVG((sell_price - buyer_asking_price) / (t.seller_asking_price - t.buyer_asking_price)),4) AS "pct_of_bid_ask_spread_realized",
 r.realtor_firstname, r.realtor_lastname, m.management_company_name
 FROM transaction t
@@ -274,6 +286,75 @@ INNER JOIN management_company m ON r.management_company_id = m.management_compan
 GROUP BY r.realtor_firstname, r.realtor_lastname, m.management_company_name
 ORDER BY pct_of_bid_ask_spread_realized ASC;
 
-
 -- LEFT JOIN property p ON t.property_id = p.property_id
 -- WHERE zip_code_id = '02120';
+
+
+-- 3. Which zip code has the most sales sorted in order
+SELECT * FROM property;
+SELECT * FROM transaction;
+
+SELECT 
+	p.zip_code_id AS "Zip Code", 
+	COUNT(*) AS FREQUENCY
+FROM transaction t
+	JOIN property p 
+	ON p.property_id = t.property_id
+GROUP BY p.zip_code_id
+ORDER BY FREQUENCY DESC;
+
+-- 4. The best time to sell a home as a seller (month) if the goal is to sell as soon as possible sorted in ascending order
+SELECT * FROM property; 
+SELECT * FROM seller;
+SELECT * FROM transaction;
+
+-- pull the month from the sell_date in transaction
+-- group by month
+-- count the number of houses sold
+-- sort in order
+
+SELECT MONTHNAME(t.sell_date) AS MONTH, COUNT(*) AS Houses_Sold FROM transaction t
+GROUP BY MONTH;
+
+-- 5. Which management company processes transactions the quickest (sell-date - offerdate)
+
+SELECT * FROM management_company; 
+SELECT * FROM realtor;
+SELECT * FROM transaction;
+SELECT * FROM seller_realtor_relation;
+SELECT * FROM buyer_realtor_relation;
+
+SELECT TEMP.management_company_id, AVG(days_taken) FROM (SELECT 
+		mc.management_company_id, 
+		DATEDIFF(t.sell_date, t.offer_date) AS days_taken
+	FROM seller_realtor_relation srr
+	JOIN realtor r ON srr.realtor_id = r.realtor_id
+	JOIN management_company mc ON mc.management_company_id = r.management_company_id
+	JOIN transaction t ON t.seller_realtor_relation_id = srr.seller_realtor_relation_id
+	WHERE t.got_property = 1) TEMP
+GROUP BY mc.management_company_id
+ORDER BY TEMP.management_company_id;
+
+-- 6. Breakdown of the zipcode and housing types
+
+SELECT * FROM zip_code;
+SELECT * FROM property;
+
+SELECT zc.zip_code_id, p.type, COUNT(p.type) AS count_of_each from zip_code zc
+JOIN property p ON zc.zip_code_id = p.zip_code_id
+GROUP BY zc.zip_code_id, p.type;
+
+-- 7. What are the wealthiest zip codes? (this is based on average highest sell price of the homes)
+
+SELECT * from zip_code;
+SELECT * from property;
+SELECT * from transaction;
+
+SELECT 
+	zc.zip_code_id, 
+	zc.region, 
+    ROUND(AVG(t.sell_price), 2) AS AVG_SELL_PRICE from property p
+LEFT JOIN zip_code zc on zc.zip_code_id = p.zip_code_id
+LEFT JOIN transaction t on p.property_id = t.property_id
+GROUP BY zc.zip_code_id, zc.region
+ORDER BY AVG_SELL_PRICE DESC;
