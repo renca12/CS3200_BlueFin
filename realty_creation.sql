@@ -65,12 +65,12 @@ num_bed INT,
 num_bath FLOAT,
 availability TINYINT,
 type ENUM('apartment', 'house', 'studio', 'condo'),
-jobs_accessible_by_foot TINYINT,
+jobs_accessible_by_pt TINYINT,
+nearby_pt TINYINT,
 walkability INT,
 in_school_zone TINYINT,
 flood_factor INT,
-street_number INT,
-street_name VARCHAR (45),
+address VARCHAR (45),
 zip_code_id INT,
 seller_id INT,
 FOREIGN KEY (seller_id) REFERENCES seller(seller_id),
@@ -130,7 +130,13 @@ INSERT INTO seller(seller_id, seller_firstname, seller_lastname) VALUES
 (15, 'Scooby', 'Doo'),
 (16, 'Priss', 'Chratt'),
 (17, 'Harry', 'Potter'),
-(18, 'Sneverus', 'Ape');
+(18, 'Sneverus', 'Ape'),
+(19, 'Ariana', 'Grande'),
+(20, 'Matt', 'Champion'),
+(21, 'Joe', 'Hardy'),
+(22, 'Tom', 'Hardy'),
+(23, 'Chet', 'Morgan'),
+(24, 'Perry', 'Playtpus');
 
 INSERT INTO buyer(buyer_id, has_partner, num_kids, buyer_firstname, buyer_lastname) VALUES
 (1, 0, 0, 'Fransisco', 'Lindor'),
@@ -153,7 +159,16 @@ INSERT INTO buyer(buyer_id, has_partner, num_kids, buyer_firstname, buyer_lastna
 (18, 1, 1, 'Shohei', 'Ohtani'),
 (19, 1, 2, 'Terrance', 'Foster'),
 (20, 0, 0, 'El', 'Jefes'),
-(21, 1, 2, 'Sir', 'Duke');
+(21, 1, 2, 'Sir', 'Duke'),
+(22, 0, 3, 'Jared', 'Goff'),
+(23, 1, 1, 'James', 'Rodriguez'),
+(24, 1, 0, 'Jamhyr', 'Gibbs'),
+(25, 0, 2, 'Jameson', 'Williams'),
+(26, 1, 4, 'Emma', 'Williams'),
+(27, 0, 0, 'Alex', 'Kim'),
+(28, 1, 2, 'Sofia', 'Martinez'),
+(29, 1, 3, 'Patrick', 'Star'),
+(30, 0, 1, 'Lester', 'Holt');
 
 INSERT INTO zip_code(zip_code_id, avg_property_tax, region, state) VALUES
 (02120, 8422, 'Suffolk', 'MA'),
@@ -181,55 +196,75 @@ INSERT INTO seller_realtor_relation(seller_realtor_relation_id, seller_id, realt
 (15, 15, 2),
 (16, 16, 5),
 (17, 17, 1),
-(18, 18, 3);
+(18, 18, 3),
+(19, 19, 6),
+(20, 20, 6),
+(21, 21, 2),
+(22, 22, 5),
+(23, 23, 2),
+(24, 24, 1);
 
 INSERT INTO buyer_realtor_relation(buyer_realtor_relation_id, buyer_id, realtor_id) VALUES
-( 1 , 1, 1),
-( 2 , 2, 2),
-( 3 , 3, 2),
-( 4 , 4, 5),
-( 5 , 5, 5),
-( 6 , 6, 5),
-( 7 , 7, 4),
-( 8 , 8, 4),
-( 9 , 9, 5),
-( 10 , 10, 5),
-( 11 , 11, 1),
-( 12 , 12, 2),
-( 13 , 13, 3),
-( 14 , 14, 2),
-( 15 , 15, 5),
-( 16 , 16, 5),
-( 17 , 17, 3),
-( 18 , 18, 2),
-( 19 , 19, 4),
-( 20 , 20, 1),
-(21, 21, 2);
+(1 , 1, 1),
+(2 , 2, 2),
+(3 , 3, 2),
+(4 , 4, 5),
+(5 , 5, 5),
+(6 , 6, 5),
+(7 , 7, 4),
+(8 , 8, 4),
+(9 , 9, 5),
+(10 , 10, 5),
+(11 , 11, 1),
+(12 , 12, 2),
+(13 , 13, 3),
+(14 , 14, 2),
+(15 , 15, 5),
+(16 , 16, 5),
+(17 , 17, 3),
+(18 , 18, 2),
+(19 , 19, 4),
+(20 , 20, 1),
+(21, 21, 2),
+(22, 22, 3),
+(23, 23, 2),
+(24, 24, 4),
+(25, 25, 1),
+(26, 26, 3),
+(27, 27, 5),
+(28, 28, 2),
+(29, 29, 4),
+(30, 30, 6);
 
 
 INSERT INTO property(property_id, sq_ft, num_bed, num_bath,
-availability, type, jobs_accessible_by_foot, walkability, in_school_zone, flood_factor,
-street_number, street_name, zip_code_id, seller_id) VALUES
-(1, 1200, 2, 2, 1, 'apartment', 1, 85, 1, 15, '245', 'Belleview Ave', '02120', 1),
-(2, 2500, 4, 3, 1, 'house', 0, 45, 1, 8, '1823', 'Greenbrier Dr', '01740', 2),
-(3, 850, 1, 1, 1, 'studio', 1, 92, 0, 22, '67', 'Proton St',  '02115', 3),
-(4, 1800, 3, 2, 1, 'condo', 1, 78, 1, 12, '456', 'Main St', '02019', 4),
-(5, 3200, 5, 4, 0, 'house', 0, 35, 1, 5, '2901', 'Wherewithal Ave', '02744', 5),
-(6, 1500, 2, 2, 1, 'apartment', 1, 88, 1, 18, '789', 'Easy St', '02739', 6),
-(7, 950, 1, 1, 1, 'studio', 1, 95, 0, 25, '134', 'Huntington Ave', '02115', 7),
-(8, 2100, 3, 2, 1, 'house', 0, 52, 1, 10, '1567', 'Midcourt Pl', '02744', 8),
-(9, 1350, 2, 1, 1, 'condo', 1, 81, 1, 14, '892', 'Oner Blvd',  '02019', 9),
-(10, 2800, 4, 3, 1, 'house', 0, 40, 1, 7, '2145', 'Adele St', '01740', 10),
-(11, 1100, 2, 1, 1, 'apartment', 1, 90, 0, 20, '445', 'Frankfurt St', '02120', 11),
-(12, 750, 1, 1, 1, 'studio', 1, 98, 1, 30, '89', 'Wright St', '02115', 12),
-(13, 1650, 2, 2, 1, 'condo', 1, 75, 1, 16, '678', 'Preston Rd', '01740', 13),
-(14, 2300, 3, 2, 1, 'house', 0, 48, 1, 9, '1734', 'Easton Rd', '01740', 14),
-(15, 1400, 2, 2, 1, 'apartment', 1, 86, 1, 19, '523', 'Louisville St', '02744', 1),
-(16, 3500, 5, 4, 0, 'house', 0, 28, 0, 4, '3102', 'Lullaby Pl', '02019', 12),
-(17, 1950, 3, 2, 0, 'condo', 1, 72, 1, 11, '1045', 'Drexel St', '02019', 7),
-(18, 2600, 4, 3, 0, 'house', 0, 38, 1, 6, '2456', 'Banana St', '02739', 9),
-(19, 12500, 4, 4.5, 1, 'house', 1, 65, 1, 12, '86', 'Parcel Pt', '02019', 15),
-(20, 1500, 3, 1, 1, 'apartment', 1, 89, 1, 50, '920', 'Piltover Rd', '02115', 18);
+availability, type, jobs_accessible_by_pt, nearby_pt, walkability, in_school_zone, flood_factor,
+address, zip_code_id, seller_id) VALUES
+(1, 1200, 2, 2, 1, 'apartment', 1, 1, 85, 1, 15, '245 Belleview Ave', '02120', 1),
+(2, 2500, 4, 3, 1, 'house', 1, 0, 45, 1, 8, '1823 Greenbrier Dr', '01740', 2),
+(3, 850, 1, 1, 1, 'studio',0, 1, 92, 0, 22, '67 Proton St',  '02115', 3),
+(4, 1800, 3, 2, 1, 'condo', 1, 1, 78, 1, 12, '456 Main St', '02019', 4),
+(5, 3200, 5, 4, 0, 'house',0, 0, 35, 1, 5, '2901 Wherewithal Ave', '02744', 5),
+(6, 1500, 2, 2, 1, 'apartment', 1, 1, 88, 1, 18, '789 Easy St', '02739', 6),
+(7, 950, 1, 1, 1, 'studio',1,  1, 95, 0, 25, '134 Huntington Ave', '02115', 7),
+(8, 2100, 3, 2, 1, 'house',1,  0, 52, 1, 10, '1567 Midcourt Pl', '02744', 8),
+(9, 1350, 2, 1, 1, 'condo', 1, 1, 81, 1, 14, '892 Oner Blvd',  '02019', 9),
+(10, 2800, 4, 3, 1, 'house', 0, 0, 40, 1, 7, '2145 Adele St', '01740', 10),
+(11, 1100, 2, 1, 1, 'apartment',1, 1, 90, 0, 20, '445 Frankfurt St', '02120', 11),
+(12, 750, 1, 1, 1, 'studio',1, 1, 98, 1, 30, '89 Wright St', '02115', 12),
+(13, 1650, 2, 2, 1, 'condo',0, 1, 75, 1, 16, '678 Preston Rd', '01740', 13),
+(14, 2300, 3, 2, 1, 'house',1, 0, 48, 1, 9, '1734 Easton Rd', '01740', 14),
+(15, 1400, 2, 2, 1, 'apartment', 1, 1, 86, 1, 19, '523 Louisville St', '02744', 5),
+(16, 3500, 5, 4, 0, 'house',1, 0, 28, 0, 4, '3102 Lullaby Pl', '02019', 16),
+(17, 1950, 3, 2, 0, 'condo',1, 1, 72, 1, 11, '1045 Drexel St', '02019', 17),
+(18, 2600, 4, 3, 0, 'house',0, 0, 38, 1, 6, '2456 Banana St', '02739', 18),
+(19, 12500, 4, 4.5, 1, 'house',1, 1, 65, 1, 12, '86 Parcel Pt', '02019', 19),
+(20, 1500, 3, 1, 1, 'apartment',1, 1, 89, 1, 50, '920 Piltover Rd', '02115', 20),
+(21, 1750, 2, 2, 1, 'condo', 1, 1, 83, 1, 13, '312 Harbor View Dr', '02120', 21),
+(22, 2900, 4, 3, 1, 'house', 0, 0, 42, 1, 8, '1678 Oakmont Ave', '02744', 22),
+(23, 1050, 1, 1, 1, 'studio', 1, 1, 94, 0, 28, '551 Commonwealth Ave', '02115', 23),
+(24, 2200, 3, 2, 0, 'house', 1, 0, 55, 1, 10, '2834 Riverside Ln', '01740', 24),
+(25, 1600, 2, 2, 1, 'apartment', 1, 1, 87, 1, 17, '467 Beacon St', '02739', 24) ;
 
 INSERT INTO transaction(transaction_id, seller_asking_price, buyer_asking_price, got_property, sell_price,
 offer_date, sell_date, property_id, buyer_realtor_relation_id, seller_realtor_relation_id) VALUES
@@ -245,7 +280,12 @@ offer_date, sell_date, property_id, buyer_realtor_relation_id, seller_realtor_re
 (10,765000,740000,1,750000,'2025-09-20','2025-09-23',10, 19, 10),
 (11,2575,2420,1,2500,'2025-10-22','2025-10-23',12, 20, 12),
 (12,10000000,6500000,1,7650000,'2025-01-24','2025-02-25',19, 21, 15),
-(13, 3000, 2925, 1, 3000, '2024-08-12', '2024-08-30',20, 14, 18);
+(13, 3000, 2925, 1, 3000, '2024-08-12', '2024-08-30',20, 14, 18),
+(14, 4200, 3950, 1, 4100, '2024-09-15', '2024-10-05', 9, 22, 9),
+(15, 550000, 525000, 1, 540000, '2025-03-10', '2025-05-19', 24, 29, 24),
+(16, 3800, 3600, 1, 3725, '2024-12-01', '2024-12-20', 23, 27, 20),
+(17, 875000, 850000, 1, 862500, '2025-01-15', '2025-02-10', 22, 29, 22),
+(18, 4950, 4800, 1, 4900, '2024-10-18', '2024-11-12', 25, 30, 23);
 
 -- =================================================== Queries ===================================================
 SELECT * FROM management_company;
@@ -259,9 +299,6 @@ SELECT * FROM property;
 SELECT * FROM transaction;
 
 -- 1. Number of sales made by each realtor
-SELECT * FROM transaction;
-SELECT * FROM seller_realtor_relation;
-SELECT * FROM realtor;
 
 SELECT r.realtor_firstname, r.realtor_lastname, IFNULL(sum(t.got_property), '0') AS "num_sales"
 FROM realtor r
@@ -271,11 +308,6 @@ GROUP BY r.realtor_firstname, r.realtor_lastname
 ORDER BY num_sales DESC;
 
 -- 2. Which realtor negotiates for their buyers the best? 
-SELECT * FROM realtor;
-SELECT * FROM buyer;
-SELECT * FROM transaction;
-SELECT * FROM buyer_realtor_relation;
-SELECT * FROM management_company;
 
 SELECT ROUND(AVG((sell_price - buyer_asking_price) / (t.seller_asking_price - t.buyer_asking_price)),4) AS "pct_of_bid_ask_spread_realized",
 r.realtor_firstname, r.realtor_lastname, m.management_company_name
@@ -286,13 +318,8 @@ INNER JOIN management_company m ON r.management_company_id = m.management_compan
 GROUP BY r.realtor_firstname, r.realtor_lastname, m.management_company_name
 ORDER BY pct_of_bid_ask_spread_realized ASC;
 
--- LEFT JOIN property p ON t.property_id = p.property_id
--- WHERE zip_code_id = '02120';
-
 
 -- 3. Which zip code has the most sales sorted in order
-SELECT * FROM property;
-SELECT * FROM transaction;
 
 SELECT 
 	p.zip_code_id AS "Zip Code", 
@@ -304,9 +331,7 @@ GROUP BY p.zip_code_id
 ORDER BY FREQUENCY DESC;
 
 -- 4. The best time to sell a home as a seller (month) if the goal is to sell as soon as possible sorted in ascending order
-SELECT * FROM property; 
-SELECT * FROM seller;
-SELECT * FROM transaction;
+
 
 -- pull the month from the sell_date in transaction
 -- group by month
@@ -318,11 +343,7 @@ GROUP BY MONTH;
 
 -- 5. Which management company processes transactions the quickest (sell-date - offerdate)
 
-SELECT * FROM management_company; 
-SELECT * FROM realtor;
-SELECT * FROM transaction;
-SELECT * FROM seller_realtor_relation;
-SELECT * FROM buyer_realtor_relation;
+
 
 SELECT TEMP.management_company_id, AVG(days_taken) FROM (SELECT 
 		mc.management_company_id, 
@@ -337,8 +358,6 @@ ORDER BY TEMP.management_company_id;
 
 -- 6. Breakdown of the zipcode and housing types
 
-SELECT * FROM zip_code;
-SELECT * FROM property;
 
 SELECT zc.zip_code_id, p.type, COUNT(p.type) AS count_of_each from zip_code zc
 JOIN property p ON zc.zip_code_id = p.zip_code_id
@@ -346,9 +365,7 @@ GROUP BY zc.zip_code_id, p.type;
 
 -- 7. What are the wealthiest zip codes? (this is based on average highest sell price of the homes)
 
-SELECT * from zip_code;
-SELECT * from property;
-SELECT * from transaction;
+
 
 SELECT 
 	zc.zip_code_id, 
