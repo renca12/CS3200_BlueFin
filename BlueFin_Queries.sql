@@ -14,7 +14,10 @@ SELECT * FROM transaction;
 
 -- 1. Number of sales made by each realtor
 
-SELECT r.realtor_firstname, r.realtor_lastname, IFNULL(sum(t.got_property), '0') AS "num_sales"
+SELECT 
+	r.realtor_firstname, 
+    r.realtor_lastname, 
+    IFNULL(sum(t.got_property), '0') AS num_sales
 FROM realtor r
 LEFT JOIN seller_realtor_relation s ON r.realtor_id = s.realtor_id
 LEFT JOIN transaction t ON s.seller_realtor_relation_id = t.seller_realtor_relation_id
@@ -23,8 +26,12 @@ ORDER BY num_sales DESC;
 
 -- 2. Which realtor negotiates for their buyers the best? 
 
-SELECT ROUND(AVG((sell_price - buyer_asking_price) / (t.seller_asking_price - t.buyer_asking_price)),4) AS "pct_of_bid_ask_spread_realized",
-r.realtor_firstname, r.realtor_lastname, m.management_company_name
+SELECT 
+	ROUND(AVG((sell_price - buyer_asking_price) / (t.seller_asking_price - t.buyer_asking_price)),4) 
+		AS pct_of_bid_ask_spread_realized,
+	r.realtor_firstname, 
+    r.realtor_lastname, 
+    m.management_company_name
 FROM transaction t
 INNER JOIN buyer_realtor_relation b ON t.buyer_realtor_relation_id = b.buyer_realtor_relation_id
 INNER JOIN realtor r ON b.realtor_id = r.realtor_id
@@ -37,28 +44,20 @@ ORDER BY pct_of_bid_ask_spread_realized ASC;
 
 SELECT 
 	p.zip_code_id AS "Zip Code", 
-	COUNT(*) AS FREQUENCY
+	COUNT(*) AS Num_Sales
 FROM transaction t
 	JOIN property p 
 	ON p.property_id = t.property_id
 GROUP BY p.zip_code_id
-ORDER BY FREQUENCY DESC;
+ORDER BY Num_Sales DESC;
 
--- 4. The best time to sell a home as a seller (month) if the goal is to sell as soon as possible sorted in ascending order
+-- 4. Which management company processes transactions the quickest (sell-date - offerdate)
 
-
--- pull the month from the sell_date in transaction
--- group by month
--- count the number of houses sold
--- sort in order
-
-SELECT MONTHNAME(t.sell_date) AS MONTH, COUNT(*) AS Houses_Sold FROM transaction t
-GROUP BY MONTH ORDER BY Houses_Sold DESC;
-
--- 5. Which management company processes transactions the quickest (sell-date - offerdate)
-
-SELECT TEMP.management_company_id, ROUND(AVG(days_taken), 2) AS AVG_DAYS_TAKEN FROM 
-(SELECT 
+SELECT 
+	TEMP.management_company_id, 
+    ROUND(AVG(days_taken), 2) AS AVG_DAYS_TAKEN 
+FROM 
+	(SELECT
 		mc.management_company_id, 
 		DATEDIFF(t.sell_date, t.offer_date) AS days_taken
 	FROM seller_realtor_relation srr
@@ -69,8 +68,7 @@ SELECT TEMP.management_company_id, ROUND(AVG(days_taken), 2) AS AVG_DAYS_TAKEN F
 GROUP BY TEMP.management_company_id
 ORDER BY AVG_DAYS_TAKEN ASC;
 
--- 6. Breakdown of the zipcode and housing types
-SELECT * FROM transaction;
+-- 5. Breakdown of the zipcode and housing types
 
 SELECT 
 	zc.zip_code_id, 
@@ -83,32 +81,31 @@ JOIN transaction t ON p.property_id = t.property_id
 GROUP BY zc.zip_code_id, p.type;
 
 
--- 7. What are the wealthiest zip codes? (this is based on average highest sell price of the homes)
+-- 6. What are the wealthiest zip codes? (this is based on average highest sell price of the homes)
 
 SELECT 
 	zc.zip_code_id, 
 	zc.region, 
-    ROUND(AVG(t.sell_price), 2) AS AVG_SELL_PRICE from property p
+    ROUND(AVG(t.sell_price), 2) AS AVG_SELL_PRICE 
+FROM property p
 LEFT JOIN zip_code zc on zc.zip_code_id = p.zip_code_id
 LEFT JOIN transaction t on p.property_id = t.property_id
 GROUP BY zc.zip_code_id, zc.region
 ORDER BY AVG_SELL_PRICE DESC;
 
--- 8. What is each realtor's most successful zip code (most sales) assuming they all take a 15% stake in the final offer price? 
-
-select * from property;
-select * from realtor;
-select * from zip_code;
-select * from transaction;
-select * from seller_realtor_relation;
+-- 7. What is each realtor's most successful zip code (most sales) assuming they all take a 15% stake in the final offer price? 
 
 SELECT 
 	TEMP.realtor_id, 
+	TEMP.realtor_firstname,
+	TEMP.realtor_lastname,
 	TEMP.zip_code_id, 
     0.15 * TEMP.total_sales AS earnings
 FROM (
     SELECT
         r.realtor_id,
+        r.realtor_firstname,
+        r.realtor_lastname,
         z.zip_code_id,
         SUM(t.sell_price) AS total_sales,
         ROW_NUMBER() OVER ( PARTITION BY r.realtor_id ORDER BY SUM(t.sell_price) DESC

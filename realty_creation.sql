@@ -1,5 +1,4 @@
 -- ================================== Create Database, Tables, and Attributes ==================================
-
 DROP DATABASE IF EXISTS realty;
 CREATE DATABASE IF NOT EXISTS realty;
 
