@@ -54,18 +54,18 @@ ORDER BY Num_Sales DESC;
 -- 4. Which management company processes transactions the quickest (sell-date - offerdate)
 
 SELECT 
-	TEMP.management_company_id, 
+	TEMP.management_company_name, 
     ROUND(AVG(days_taken), 2) AS AVG_DAYS_TAKEN 
 FROM 
 	(SELECT
-		mc.management_company_id, 
+		mc.management_company_name, 
 		DATEDIFF(t.sell_date, t.offer_date) AS days_taken
 	FROM seller_realtor_relation srr
 	JOIN realtor r ON srr.realtor_id = r.realtor_id
 	JOIN management_company mc ON mc.management_company_id = r.management_company_id
 	JOIN transaction t ON t.seller_realtor_relation_id = srr.seller_realtor_relation_id
 	WHERE t.got_property = 1) TEMP
-GROUP BY TEMP.management_company_id
+GROUP BY TEMP.management_company_name
 ORDER BY AVG_DAYS_TAKEN ASC;
 
 -- 5. Breakdown of the zipcode and housing types
