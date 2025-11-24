@@ -105,11 +105,6 @@ INSERT INTO realtor(realtor_id, realtor_firstname, realtor_lastname, realtor_age
 (5, 'Timmy', 'Jumbotron', '38', 2),
 (6, 'Garbanzo', 'Beans', '37', 3);
 
--- SELECT r.realtor_firstname 
--- FROM realtor r
--- INNER JOIN management_company m
--- ON r.management_company_id = m.management_company_id
--- WHERE m.management_company_name = 'Photon Mgmt';
 
 INSERT INTO seller(seller_id, seller_firstname, seller_lastname) VALUES
 (1, 'John', 'Snow'),
