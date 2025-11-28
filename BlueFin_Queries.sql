@@ -12,7 +12,7 @@ SELECT * FROM buyer_realtor_relation;
 SELECT * FROM property;
 SELECT * FROM transaction;
 
--- 1. Number of sales made by each realtor
+-- 1. Number of sales made by each realtor. This question asks for the name of the realtor as well as the number of sales it has made. 
 
 SELECT 
 	r.realtor_firstname, 
@@ -24,7 +24,9 @@ LEFT JOIN transaction t ON s.seller_realtor_relation_id = t.seller_realtor_relat
 GROUP BY r.realtor_firstname, r.realtor_lastname
 ORDER BY num_sales DESC;
 
--- 2. Which realtor negotiates for their buyers the best? 
+-- 2. Which realtor negotiates for their buyers the best? THis question assesses the realtors and sorts them based on which 
+-- one is the best at getting a final sell price similar to the buyer's asking price. The query pulls the percent of the bid
+-- that the realtor was able to negotiate, the name of the realtor, and the realtor's management company. 
 
 SELECT 
 	ROUND(AVG((sell_price - buyer_asking_price) / (t.seller_asking_price - t.buyer_asking_price)),4) 
@@ -40,7 +42,8 @@ GROUP BY r.realtor_firstname, r.realtor_lastname, m.management_company_name
 ORDER BY pct_of_bid_ask_spread_realized ASC;
 
 
--- 3. Which zip code has the most sales sorted in order
+-- 3. Which zip code has the most sales sorted in order? This question assesses which zip code has the most successful sales ranked in order
+-- of sales. 
 
 SELECT 
 	p.zip_code_id AS "Zip Code", 
@@ -51,7 +54,9 @@ FROM transaction t
 GROUP BY p.zip_code_id
 ORDER BY Num_Sales DESC;
 
--- 4. Which management company processes transactions the quickest (sell-date - offerdate)
+-- 4. Which management company processes transactions the quickest (sell-date - offerdate)? This question looks for the most efficient
+-- management company, based on their processing speed. This processing speed is based on the date the offer is proposed to the seller, 
+-- and the official sell date. 
 
 SELECT 
 	TEMP.management_company_name, 
@@ -68,7 +73,9 @@ FROM
 GROUP BY TEMP.management_company_name
 ORDER BY AVG_DAYS_TAKEN ASC;
 
--- 5. Breakdown of the zipcode and housing types
+-- 5. Breakdown of the zipcode and housing types. This question is just looking to see an overall breakdown on properties based on location.
+-- We wished to see how much the sellers typically asked for, and for what homes. This is good for sellers trying to see what a reasonable price
+-- to list their home for could be. 
 
 SELECT 
 	zc.zip_code_id, 
@@ -81,7 +88,8 @@ JOIN transaction t ON p.property_id = t.property_id
 GROUP BY zc.zip_code_id, p.type;
 
 
--- 6. What are the wealthiest zip codes? (this is based on average highest sell price of the homes)
+-- 6. What are the wealthiest zip codes? This is based on average highest sell price of the homes. This lets realtors know 
+-- which zip codes are good places to target (especially if they want a higher cut of the sell price). 
 
 SELECT 
 	zc.zip_code_id, 
@@ -94,6 +102,8 @@ GROUP BY zc.zip_code_id, zc.region
 ORDER BY AVG_SELL_PRICE DESC;
 
 -- 7. What is each realtor's most successful zip code (most sales) assuming they all take a 15% stake in the final offer price? 
+-- This questions wants to know which realtor has the best performance in which zip codes. This is based on what's the total sale
+-- prices made by a realtor at each zip code. 
 
 SELECT 
 	TEMP.realtor_id, 
